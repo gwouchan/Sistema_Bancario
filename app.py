@@ -1,3 +1,5 @@
+from datetime import datetime
+
 menu = '''
 
 [d] Depositar
@@ -12,6 +14,8 @@ limite = 500
 extrato = ''
 numero_saques = 0
 LIMITE_SAQUES = 3
+numero_transacao = 0
+LIMITE_TRANSACAO = 10
 mensagem_erro = 'Valor inválido. Tente novamente.'
 
 while True:
@@ -25,9 +29,16 @@ while True:
                 print(mensagem_erro)
                 continue
 
+            if numero_transacao < LIMITE_TRANSACAO:
+                numero_transacao += 1
+            else:
+                print('Você excedeu o número de transações diarias.')
+                break
+
             if valor_deposito > 0:
                 saldo += valor_deposito
-                extrato += f'Depósito: R$ {valor_deposito:.2f}\n'
+                time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                extrato += f'{time} - Depósito: R$ {valor_deposito:.2f}\n'
 
                 print(f'Depósito de R$ {valor_deposito:.2f} realizado com sucesso!')
                 break
@@ -44,6 +55,12 @@ while True:
             except ValueError:
                 print(mensagem_erro)
                 continue
+
+            if numero_transacao < LIMITE_TRANSACAO:
+                numero_transacao += 1
+            else:
+                print('Você excedeu o número de transações diarias.')
+                break
 
             if valor_saque <= 0:
                 print(mensagem_erro)
@@ -63,7 +80,8 @@ while True:
                 continue
             
             saldo -= valor_saque
-            extrato += f'Saque: -R$ {valor_saque:.2f}\n'
+            time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            extrato += f'{time} - Saque: -R$ {valor_saque:.2f}\n'
             numero_saques += 1
             break
     
