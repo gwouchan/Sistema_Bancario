@@ -1,99 +1,128 @@
-from datetime import datetime
+def menu():
+    text_menu = '''\n
+    1 - Depositar
+    2 - Sacar
+    3 - Extrato
+    4 - Nova Conta
+    5 - Listar contas
+    6 - Novo usuário
+    0 - Sair
+    → '''
 
-menu = '''
+    try:
+        option = int(input(text_menu))
+        if 0 <= option <= 6:
+            return option
+        else:
+            print(f'\nDigite um número entre 0 e 6.')
+            return menu()
+    except ValueError:
+        print(f'\nValor inválido. Tente digitar somente os números entre 0 e 6.')
+        return menu()
 
-[d] Depositar
-[s] Sacar
-[e] Extrato
-[q] Sair
 
-=> '''
-
-saldo = 0
-limite = 500
-extrato = ''
-numero_saques = 0
-LIMITE_SAQUES = 3
-numero_transacao = 0
-LIMITE_TRANSACAO = 10
-mensagem_erro = 'Valor inválido. Tente novamente.'
-
-while True:
-    opcao = input(menu).lower()
-
-    if opcao == 'd':
-        while True:
-            try:
-                valor_deposito = float(input('Digite o valor do depósito: R$ '))
-            except ValueError:
-                print(mensagem_erro)
-                continue
-
-            if numero_transacao < LIMITE_TRANSACAO:
-                numero_transacao += 1
-            else:
-                print('Você excedeu o número de transações diarias.')
-                break
-
-            if valor_deposito > 0:
-                saldo += valor_deposito
-                time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                extrato += f'{time} - Depósito: R$ {valor_deposito:.2f}\n'
-
-                print(f'Depósito de R$ {valor_deposito:.2f} realizado com sucesso!')
-                break
-
-            else:
-                print(mensagem_erro)
-                continue
-                 
-
-    elif opcao == 's':
-        while True:
-            try:
-                valor_saque = float(input('Digite o valor para saque (limite R$500,00 por saque): R$ '))
-            except ValueError:
-                print(mensagem_erro)
-                continue
-
-            if numero_transacao < LIMITE_TRANSACAO:
-                numero_transacao += 1
-            else:
-                print('Você excedeu o número de transações diarias.')
-                break
-
-            if valor_saque <= 0:
-                print(mensagem_erro)
-                continue
-
-            elif numero_saques == LIMITE_SAQUES:
-                print('Limite diário de saque atingido. Você pode sacar até três vezes.')
-                break
-
-            elif valor_saque > saldo:
-                print('Você não possui saldo eficiente para realizar o saque')
-                print(f'Saldo atual: R$ {saldo:.2f}')
-                continue
-
-            elif valor_saque > limite:
-                print('Limite R$500,00 por saque, tente um valor menor.')
-                continue
-            
-            saldo -= valor_saque
-            time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            extrato += f'{time} - Saque: -R$ {valor_saque:.2f}\n'
-            numero_saques += 1
-            break
+def deposit(balance, amount, extract, /):
+    if amount > 0:
+        balance += amount
+        extract += f'Depósito: R$ {amount:.2f}\n'
+        print(f'\n»»» Depósito realizado com sucesso! «««')
+    else: 
+        print(f'\n✕✕✕ Operação falhou! O valor informado é inválido. ✕✕✕')
     
-    elif opcao == 'e':
-        print(' EXTRATO '.center(40,'='))
-        print("Não foram realizadas movimentações." if not extrato else extrato)
-        print(f"\nSaldo: R$ {saldo:.2f}")
-        print("=".center(40,'='))
-    
-    elif opcao == 'q':
-        print('Sistema finalizado.')
-        break
+    return balance, extract
 
+def withdraw(*, balance, amount, extract, limit, number_withdraw, limit_withdraw):
+    balance_exceeded = amount > balance
+    limit_exceeded = amount > limit
+    withdraw_exceeded = number_withdraw >= limit_withdraw
+
+    if balance_exceeded:
+        print(f'\n✕✕✕ Operação falhou! Você não possui saldo suficiente. ✕✕✕')
+    elif limit_exceeded:
+        print(f'\n✕✕✕ Operação falhou! O valor do saque excede o limite. ✕✕✕')
+    elif withdraw_exceeded:
+        print(f'\n✕✕✕ Operação falhou! Número máximo de saques excedido. ✕✕✕')
+
+    elif amount > 0:
+        balance -= amount
+        extract += f'Saque: R$ {amount:.2f}\n'
+        number_withdraw += 1
+        print(f'\n»»» Saque realizado com sucesso! «««')
     else:
-        print('Opção inválda. Tente novamente.')
+        print(f'\n✕✕✕ Operação falhou! O valor informado é inválido. ✕✕✕')
+    
+    return balance, extract
+
+def display_extract(balance,/,*,extract):
+    print(f'\n▪▪▪▪▪▪▪▪▪▪ EXTRATO ▪▪▪▪▪▪▪▪▪▪')
+    print(f'Não foram encontradas movimentações' if not extract else extract)
+    print(f'\nSaldo: R$ {balance:.2f}')
+    print('▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪▪')
+
+def register_user(users):
+    cpf = input('Informe o CPF (somente números): ')
+    user = filter_user(cpf,users)
+
+    if user:
+        print(f'\n✕✕✕ Já existe um usuário com este CPF! ✕✕✕')
+        return
+    
+    name = input('Informe o nome: ')
+    date_bird = input('Informe sua data de nascimento (dd-mm-aaaa): ')
+    address = input('Informe o endereço (logradouro, nº - bairro - município/UF): ')
+
+    users.append({'name': name, 'date_bird': date_bird,'cpf': cpf, 'address': address})
+
+    print(f'\n»»» Usuário criado com sucesso! «««')
+
+def filter_user(cpf, users):
+    filters_users = [user for user in users if user['cpf'] == cpf]
+    return filters_users[0] if filters_users else None
+
+  
+def main():
+    LIMIT_WITHDRAW = 3
+    AGENCY = "0001"
+
+    balance = 0
+    limit = 500
+    extract = ""
+    number_withdraw = 0
+    users = []
+    accounts = []
+
+    while True:
+        option = menu()
+
+        match option:
+            case 1: #deposito
+                amount = float(input(f'\nDigite o valor do depósito: R$ '))
+
+                balance, extract = deposit(balance, amount, extract)
+                ...
+            case 2: #saque
+                amount = float(input(f'\nDigite o valor do saque: R$ '))
+
+                balance, extract = withdraw(
+                    balance = balance,
+                    amount = amount,
+                    extract = extract,
+                    limit = limit,
+                    number_withdraw = number_withdraw,
+                    limit_withdraw = LIMIT_WITHDRAW
+                    )
+
+            case 3: #extrato
+                display_extract(balance, extract=extract)
+            case 4:
+                ...
+            case 5:
+                ...
+            case 6:
+                ...
+            case 0:
+                ...
+            case _:
+                ...
+
+main()
